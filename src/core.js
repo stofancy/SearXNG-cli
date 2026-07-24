@@ -265,16 +265,56 @@ function extractTitle(html) {
 }
 
 function htmlToText(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
-    .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<\/(p|div|h[1-6]|li|article|section|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+  const withoutBlockedElements = ["script", "style", "noscript"]
+    .reduce((text, tagName) => stripElementBlocks(text, tagName), html);
+  const withoutTags = withoutBlockedElements
+    .replace(/<br\b[^>]*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6]|li|article|section|tr)\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ");
+  return decodeEntities(withoutTags)
     .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
+}
+
+function stripElementBlocks(html, tagName) {
+  const lower = html.toLowerCase();
+  const openToken = `<${tagName}`;
+  const closeToken = `</${tagName}`;
+  let cursor = 0;
+  let output = "";
+  while (cursor < html.length) {
+    const open = findTag(lower, openToken, cursor);
+    if (open < 0) break;
+    const openEnd = lower.indexOf(">", open + openToken.length);
+    if (openEnd < 0) return output + html.slice(cursor, open);
+    const close = findTag(lower, closeToken, openEnd + 1);
+    if (close < 0) return output + html.slice(cursor, open);
+    const closeEnd = lower.indexOf(">", close + closeToken.length);
+    if (closeEnd < 0) return output + html.slice(cursor, open);
+    output += `${html.slice(cursor, open)} `;
+    cursor = closeEnd + 1;
+  }
+  return output + html.slice(cursor);
+}
+
+function findTag(lower, token, start) {
+  let index = lower.indexOf(token, start);
+  while (index >= 0) {
+    const boundary = lower[index + token.length];
+    if (boundary === undefined || boundary === ">" || boundary === "/" || " \t\r\n\f".includes(boundary)) return index;
+    index = lower.indexOf(token, index + token.length);
+  }
+  return -1;
+}
+
+function decodeEntities(text) {
+  return text.replace(/&(?:nbsp|amp|lt|gt|#(?:x[0-9a-f]+|\d+));/gi, (entity) => {
+    const name = entity.slice(1, -1).toLowerCase();
+    const named = { nbsp: " ", amp: "&", lt: "<", gt: ">" }[name];
+    if (named !== undefined) return named;
+    const code = name.startsWith("#x") ? Number.parseInt(name.slice(2), 16) : Number.parseInt(name.slice(1), 10);
+    if (!Number.isInteger(code) || code < 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) return entity;
+    return String.fromCodePoint(code);
+  });
 }
 
 async function readLimitedBody(response, maxBytes) {
