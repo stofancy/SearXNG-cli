@@ -47,7 +47,7 @@ before(async () => {
     }
     if (url.pathname === "/page") {
       response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      return response.end("<title>Local Test</title><main>Hello <strong>agent</strong><script>drop()</script ><style>hide()</style ><noscript>ignore()</noscript >&amp;lt;literal</main>");
+      return response.end("<title>Local Test</title><main>Hello <strong>agent</strong><script>drop()</script\t\n bar><style>hide()</style ><noscript>ignore()</noscript >&amp;lt;literal</main>");
     }
     if (url.pathname === "/redirect") {
       response.writeHead(302, { location: "/page" });

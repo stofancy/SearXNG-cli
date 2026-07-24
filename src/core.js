@@ -265,15 +265,45 @@ function extractTitle(html) {
 }
 
 function htmlToText(html) {
-  const withoutTags = html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
-    .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript\s*>/gi, " ")
+  const withoutBlockedElements = ["script", "style", "noscript"]
+    .reduce((text, tagName) => stripElementBlocks(text, tagName), html);
+  const withoutTags = withoutBlockedElements
     .replace(/<br\b[^>]*\/?>/gi, "\n")
     .replace(/<\/(p|div|h[1-6]|li|article|section|tr)\s*>/gi, "\n")
     .replace(/<[^>]+>/g, " ");
   return decodeEntities(withoutTags)
     .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
+}
+
+function stripElementBlocks(html, tagName) {
+  const lower = html.toLowerCase();
+  const openToken = `<${tagName}`;
+  const closeToken = `</${tagName}`;
+  let cursor = 0;
+  let output = "";
+  while (cursor < html.length) {
+    const open = findTag(lower, openToken, cursor);
+    if (open < 0) break;
+    const openEnd = lower.indexOf(">", open + openToken.length);
+    if (openEnd < 0) return output + html.slice(cursor, open);
+    const close = findTag(lower, closeToken, openEnd + 1);
+    if (close < 0) return output + html.slice(cursor, open);
+    const closeEnd = lower.indexOf(">", close + closeToken.length);
+    if (closeEnd < 0) return output + html.slice(cursor, open);
+    output += `${html.slice(cursor, open)} `;
+    cursor = closeEnd + 1;
+  }
+  return output + html.slice(cursor);
+}
+
+function findTag(lower, token, start) {
+  let index = lower.indexOf(token, start);
+  while (index >= 0) {
+    const boundary = lower[index + token.length];
+    if (boundary === undefined || boundary === ">" || boundary === "/" || " \t\r\n\f".includes(boundary)) return index;
+    index = lower.indexOf(token, index + token.length);
+  }
+  return -1;
 }
 
 function decodeEntities(text) {
