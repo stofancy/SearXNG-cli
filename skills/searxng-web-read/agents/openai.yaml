@@ -1,0 +1,4 @@
+interface:
+  display_name: "SearXNG Web Read"
+  short_description: "Safely extract readable text from a public web page"
+  default_prompt: "Use $searxng-web-read to inspect this public web page and summarize the relevant evidence."

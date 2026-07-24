@@ -1,0 +1,51 @@
+{
+  "name": "@stofancy/searxng-cli",
+  "version": "0.1.0",
+  "description": "Agent-first CLI for SearXNG search, research, and web reading",
+  "license": "MIT",
+  "keywords": [
+    "searxng",
+    "search",
+    "cli",
+    "agent",
+    "web-research",
+    "codex",
+    "claude"
+  ],
+  "homepage": "https://github.com/stofancy/SearXNG-cli#readme",
+  "bugs": {
+    "url": "https://github.com/stofancy/SearXNG-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stofancy/SearXNG-cli.git"
+  },
+  "type": "module",
+  "bin": {
+    "SearXNG-cli": "bin/SearXNG-cli.js",
+    "searxng-cli": "bin/SearXNG-cli.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check bin/SearXNG-cli.js && node --check src/cli.js && node --check src/core.js && node --check src/output.js && node --check src/policy.js && node --check src/skills.js",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-lines=80 --test-coverage-branches=60 --test-coverage-functions=70",
+    "e2e:live": "bash test/e2e-live.sh",
+    "prepack": "npm run check && npm test"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

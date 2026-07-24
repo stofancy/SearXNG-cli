@@ -1,0 +1,4 @@
+interface:
+  display_name: "SearXNG Source Evaluation"
+  short_description: "Assess web sources for authority, freshness, and support"
+  default_prompt: "Use $searxng-web-source-evaluation to assess which of these sources are strong enough to support the claim."

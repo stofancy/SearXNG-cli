@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+/outputs/
+/work/
+*.log
+*.tgz
+.DS_Store
+.env
+.env.*
+!.env.example

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SearXNG Web Search"
+  short_description: "Search the web through a configured SearXNG instance"
+  default_prompt: "Use $searxng-web-search to find current, relevant sources for my question."

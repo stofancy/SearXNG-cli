@@ -1,0 +1,4 @@
+interface:
+  display_name: "SearXNG Web Research"
+  short_description: "Research with multiple queries and corroborated sources"
+  default_prompt: "Use $searxng-web-research to investigate this topic and report source coverage and disagreements."
