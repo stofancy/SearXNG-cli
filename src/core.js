@@ -265,16 +265,26 @@ function extractTitle(html) {
 }
 
 function htmlToText(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
-    .replace(/<br\s*\/?\s*>/gi, "\n")
-    .replace(/<\/(p|div|h[1-6]|li|article|section|tr)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+  const withoutTags = html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, " ")
+    .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript\s*>/gi, " ")
+    .replace(/<br\b[^>]*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h[1-6]|li|article|section|tr)\s*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ");
+  return decodeEntities(withoutTags)
     .replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
+}
+
+function decodeEntities(text) {
+  return text.replace(/&(?:nbsp|amp|lt|gt|#(?:x[0-9a-f]+|\d+));/gi, (entity) => {
+    const name = entity.slice(1, -1).toLowerCase();
+    const named = { nbsp: " ", amp: "&", lt: "<", gt: ">" }[name];
+    if (named !== undefined) return named;
+    const code = name.startsWith("#x") ? Number.parseInt(name.slice(2), 16) : Number.parseInt(name.slice(1), 10);
+    if (!Number.isInteger(code) || code < 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) return entity;
+    return String.fromCodePoint(code);
+  });
 }
 
 async function readLimitedBody(response, maxBytes) {
